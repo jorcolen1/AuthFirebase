@@ -1,0 +1,383 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Firebase-JS- Autentication  Bootstrap</title>
+<!-- bootstrap-->
+<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css" integrity="sha384-Gn5384xqQ1aoWXA+058RXPxPg6fy4IWvTNh0E263XmFcJlSAwiGgFAW/dAiS6JXm" crossorigin="anonymous">
+</head>
+<body>
+   <!-- bootstrap--> 
+    <nav class="navbar navbar-expand-lg navbar-dark bg-dark border-bottom">
+        <div class="container">
+    
+          <a class="navbar-brand" href="#">Navbar</a>
+          <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
+            <span class="navbar-toggler-icon"></span>
+          </button>
+          <div class="collapse navbar-collapse" id="navbarNav">
+            <ul class="navbar-nav ml-auto">
+              
+              <li class="nav-item logged-out" style="display: none;">
+                <a class="nav-link" href="#" data-toggle="modal" data-target="#signinModal">Signin</a>
+              </li>
+              <li class="nav-item logged-out" style="display: none;">
+                <a class="nav-link" href="#" data-toggle="modal" data-target="#signupModal">SignUp</a>
+              </li>
+              <li class="nav-item logged-in" style="display: none;">
+                <a class="nav-link" href="#" id="logout">Logout</a>
+              </li>
+            </ul>
+          </div>
+        </div>
+      </nav>
+
+  
+ <!-- Main Content -->
+ <div class="container p-4">
+  <div class="row">
+    <div class="col-md-6 offset-md-3">
+      <ul class="list-group" id="posts">
+      </ul>
+    </div>
+  </div>
+</div>
+
+
+ <!-- Modal signup(registrarse) -->
+<div class="modal fade" id="signupModal" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel" aria-hidden="true">
+    <div class="modal-dialog" role="document">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title" id="exampleModalLabel">Modal title</h5>
+          <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+            <span aria-hidden="true">&times;</span>
+          </button>
+        </div>
+        <div class="modal-body">
+          <form id="signup-form">
+              <div class="form-group">
+                  <input type="texto" id="signup-email" class="form-comtrol" placeholder="email" required>
+              </div>
+              <div class="form-group">
+                <input type="password" id="signup-password" class="form-comtrol" placeholder="password" required>
+            </div>
+             <button type="submit" class="btn btn-primary">
+                 Signup
+            </button>
+          
+          </form>
+        </div>
+      </div>
+    </div>
+  </div>
+ 
+  <!-- Modal signin(Loguearse) -->
+<div class="modal fade" id="signinModal" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel" aria-hidden="true">
+  <div class="modal-dialog" role="document">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="exampleModalLabel">Signin</h5>
+        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      <div class="modal-body">
+        <form id="login-form">
+            <div class="form-group">
+                <input type="texto" id="login-email" class="form-comtrol" placeholder="email" required>
+            </div>
+            <div class="form-group">
+              <input type="password" id="login-password" class="form-comtrol" placeholder="password" required>
+          </div>
+           <button type="submit" class="btn btn-secondary btn-block">
+              Login
+          </button>
+          <button type="button" class="btn btn-info btn-block" id="googleLogin">
+              Login with Google
+          </button>
+          <button type="button" class="btn btn-primary btn-block" id="facebookLogin">
+              Login with Facebook
+          </button>
+        </form>      
+      </div>      
+    </div>
+  </div>
+</div>
+
+  <!-- Boostrap Scripts -->
+  <script src="https://code.jquery.com/jquery-3.2.1.slim.min.js" integrity="sha384-KJ3o2DKtIkvYIK3UENzmM7KCkRr/rE9/Qpg6aAZGJwFDMVNA/GpGFF93hXpG5KkN" crossorigin="anonymous"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.12.9/umd/popper.min.js" integrity="sha384-ApNbgh9B+Y1QKtv3Rn7W3mgPxhU9K/ScQsAP7hUibX39j7fakFPskvXusvfa0b4Q" crossorigin="anonymous"></script>
+  <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/js/bootstrap.min.js" integrity="sha384-JZR6Spejh4U02d8jOt6vLEHfe/JQGiRRSQQxSfFWpi1MquVdAyjUar5+76PVCmYl" crossorigin="anonymous"></script>
+
+    <!-- Firebase Scripts -->
+      
+      <script type="module">
+        // Import the functions you need from the SDKs you need
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/9.6.1/firebase-app.js";
+        import { getAnalytics } from "https://www.gstatic.com/firebasejs/9.6.1/firebase-analytics.js";
+        import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword,signOut, onAuthStateChanged  } from "https://www.gstatic.com/firebasejs/9.6.1/firebase-auth.js";
+        import { getFirestore, collection, doc, setDoc, getDoc } from "https://www.gstatic.com/firebasejs/9.6.1/firebase-firestore.js";
+        import { query,where,getDocs } from "https://www.gstatic.com/firebasejs/9.6.1/firebase-firestore.js";
+        import { signInWithPopup, GoogleAuthProvider } from "https://www.gstatic.com/firebasejs/9.6.1/firebase-auth.js";
+        import { FacebookAuthProvider } from "https://www.gstatic.com/firebasejs/9.6.1/firebase-auth.js";
+        
+        // TODO: Add SDKs for Firebase products that you want to use
+        // https://firebase.google.com/docs/web/setup#available-libraries
+      
+        // Your web app's Firebase configuration
+        // For Firebase JS SDK v7.20.0 and later, measurementId is optional
+        const firebaseConfig = {
+          apiKey: "AIzaSyDfcXowDR-ANqf6g0B7K3HuT5sQxf9ApSM",
+          authDomain: "serverdatabase010.firebaseapp.com",
+          projectId: "serverdatabase010",
+          storageBucket: "serverdatabase010.appspot.com",
+          messagingSenderId: "737324302087",
+          appId: "1:737324302087:web:e8821d2f61aa79adc0cfa2",
+          measurementId: "G-30B0YTV5F5"
+        };
+      
+        // Initialize Firebase
+        const app = initializeApp(firebaseConfig);
+        const analytics = getAnalytics(app);
+        const auth = getAuth();
+        const db = getFirestore(app);
+        const citiesRef = collection(db, "cities");//para escribir en DB
+        const docRef = doc(db, "cities", "SF");// para Leer en DB
+        const docSnap = await getDoc(docRef);//descargar el documento desde DB
+        const provider = new GoogleAuthProvider();// autenticacion con Google
+        const providerF = new FacebookAuthProvider();
+
+        //consulta(query) simple
+        //const q = query(citiesRef, where("state", "==", "CA"));
+        //consulta  varias 
+        const q = query(collection(db, "cities"), where("capital", "==", true));//crear un objeto Consulta
+        const querySnapshot = await getDocs(q);
+
+
+      /*--------------------------------------JavaScript----------------------------------*/  
+      /*-----funcion registrarse-----*/
+      const loggedOutLinks = document. querySelectorAll(".logged-out")
+      const loggedINLinks = document. querySelectorAll(".logged-in")
+      
+      const loginCheck = (user) => {
+        if (user){
+          loggedINLinks.forEach((link) => (link.style.display = "block"));
+          loggedOutLinks.forEach((link) => (link.style.display = "none"));
+
+        }else{
+          loggedINLinks.forEach((link) => (link.style.display = "none"));
+          loggedOutLinks.forEach((link) => (link.style.display = "block"));
+
+        }
+      }
+      /*-----funcion registrarse-----*/
+      const signupForm = document.querySelector('#signup-form');
+      signupForm.addEventListener('submit', (e) => {
+          e.preventDefault();// cancelar el comportamiento po defecto de las tablas html
+          const email = document.querySelector('#signup-email').value;
+          const password = document.querySelector('#signup-password').value;
+            console.log(email,password );
+          createUserWithEmailAndPassword(auth, email, password)
+          .then((userCredential) => {
+              const user = userCredential.user;
+              //clear the form
+              signupForm.reset();
+              // close the modal 
+              $('#signupModal').modal('hide')
+              console.log('sign Up')
+          })
+      })
+      
+      /*-----funcion login-----*/
+      const signinForm = document.querySelector('#login-form');
+      signinForm.addEventListener('submit', (e) => {
+          e.preventDefault();// cancelar los eventos por defecto del formulario
+          const email = document.querySelector('#login-email').value;
+          const password = document.querySelector('#login-password').value;
+            console.log(email,password );
+          signInWithEmailAndPassword(auth, email, password)
+          .then((userCredential) => {
+            const user = userCredential.user;
+            //clear the form
+            signinForm.reset();
+            // close the modal 
+            $('#signinModal').modal('hide')
+            console.log('sign in')
+          })
+      })
+
+      /*-----funcion logout-----*/
+      const logout = document.querySelector('#logout');
+      logout.addEventListener('click',(e) => {
+        e.preventDefault();
+        signOut(auth)
+        .then(() => {
+          console.log('sign out')
+        })
+      })
+
+        //minuto 37:45 https://www.youtube.com/watch?v=1rLBjRF0ep0
+   
+    /*-----Google Login-----*/
+     const googleButton= document.querySelector('#googleLogin');
+      googleButton.addEventListener('click',e => {
+        signInWithPopup(auth, provider)
+          .then((result) => {
+            console.log('Google signIN')
+            // This gives you a Google Access Token. You can use it to access the Google API.
+            const credential = GoogleAuthProvider.credentialFromResult(result);
+            const token = credential.accessToken;
+            // The signed-in user info.
+            const user = result.user;
+             //clear the form
+            signinForm.reset();
+            // close the modal 
+            $('#signinModal').modal('hide')
+            console.log('sign in with google ')
+            // ...
+          }).catch((error) => {
+            // Handle Errors here.
+            const errorCode = error.code;
+            const errorMessage = error.message;
+            // The email of the user's account used.
+            const email = error.email;
+            // The AuthCredential type that was used.
+            const credential = GoogleAuthProvider.credentialFromError(error);
+            // ...
+          });
+        })
+
+
+    
+    /*-----Facebook Login-----*/
+     const facebookButton= document.querySelector('#facebookLogin');
+      facebookButton.addEventListener('click',e => {
+        signInWithPopup(auth, providerF)
+          .then((result) => {
+
+            console.log('Facebook signIN')
+            // The signed-in user info.
+            const user = result.user;
+
+            // This gives you a Facebook Access Token. You can use it to access the Facebook API.
+            const credential = FacebookAuthProvider.credentialFromResult(result);
+            const accessToken = credential.accessToken;
+
+            signinForm.reset();
+            // close the modal 
+            $('#signinModal').modal('hide')
+            console.log('sign in with Facebook ')
+
+          })
+          .catch((error) => {
+            // Handle Errors here.
+            const errorCode = error.code;
+            const errorMessage = error.message;
+            // The email of the user's account used.
+            const email = error.email;
+            // The AuthCredential type that was used.
+            const credential = FacebookAuthProvider.credentialFromError(error);
+
+            
+            
+          });
+
+      })
+         
+      /*-----escribir Database-------*/
+/*await setDoc(doc(citiesRef, "SF"), {
+    name: "San Francisco", state: "CA", country: "USA",
+    capital: false, population: 860000,
+    regions: ["west_coast", "norcal"] });
+await setDoc(doc(citiesRef, "LA"), {
+    name: "Los Angeles", state: "CA", country: "USA",
+    capital: false, population: 3900000,
+    regions: ["west_coast", "socal"] });
+await setDoc(doc(citiesRef, "DC"), {
+    name: "Washington, D.C.", state: null, country: "USA",
+    capital: true, population: 680000,
+    regions: ["east_coast"] });
+await setDoc(doc(citiesRef, "TOK"), {
+    name: "Tokyo", state: null, country: "Japan",
+    capital: true, population: 9000000,
+    regions: ["kanto", "honshu"] });
+await setDoc(doc(citiesRef, "BJ"), {
+    name: "Beijing", state: null, country: "China",
+    capital: true, population: 21500000,
+    regions: ["jingjinji", "hebei"] });await setDoc(doc(citiesRef, "SF"), {
+    name: "San Francisco", state: "CA", country: "USA",
+    capital: false, population: 860000,
+    regions: ["west_coast", "norcal"] });
+await setDoc(doc(citiesRef, "LA"), {
+    name: "Los Angeles", state: "CA", country: "USA",
+    capital: false, population: 3900000,
+    regions: ["west_coast", "socal"] });
+await setDoc(doc(citiesRef, "DC"), {
+    name: "Washington, D.C.", state: null, country: "USA",
+    capital: true, population: 680000,
+    regions: ["east_coast"] });
+await setDoc(doc(citiesRef, "TOK"), {
+    name: "Tokyo", state: null, country: "Japan",
+    capital: true, population: 9000000,
+    regions: ["kanto", "honshu"] });
+await setDoc(doc(citiesRef, "BJ"), {
+    name: "Beijing", state: null, country: "China",
+    capital: true, population: 21500000,
+    regions: ["jingjinji", "hebei"] });*/
+
+
+       /*-----Traer base de datos-----*/         
+      const postList = document.getElementById('posts');
+      const setupPosts = () => {
+        if (docSnap.exists()) {
+            //console.log("Document data:", docSnap.data());
+            let html = "";
+            querySnapshot.forEach((doc) => {
+                // doc.data() is never undefined for query doc snapshots
+                //console.log(doc.id, " => ", doc.data());
+                const post = doc.data()
+                console.log(post)
+                const li = `
+                  <li class="list-group-item list-group-item-action">
+                    <h5>${post.country}</h5>
+                    <p>${post.name}</p>
+                  </li>
+                  `;
+                  html += li;
+              });
+              //html=setupPosts();
+              
+              //postList.insertAdjacentHTML('afterend',html ); //se utiliza para  
+              postList.innerHTML = html;
+          } else {
+            //doc.data() will be undefined in this case
+            postList.innerHTML = ('<h4 class="text-white">no hay datos</h4>' );
+           }
+      }
+      // Eventos
+      // Lista para los usuarios que estan auticados.
+    onAuthStateChanged(auth, (user) => {
+        if(user){
+          console.log('auth: signin');
+          setupPosts();
+          loginCheck(user);
+                      
+        }else{
+          console.log('auth: signout');
+          postList.innerHTML = ('<h4 class="text-white1"> Autentificate</h4>' );
+          loginCheck(user);
+        }
+    })
+      
+
+
+      </script>
+
+    <!-- Link Scripts -->
+  <script></script>
+
+</body>
+</html>
